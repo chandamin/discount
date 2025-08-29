@@ -1,0 +1,48 @@
+# query CartInput {
+#   cart {
+#     lines {
+#       id
+#       cost {
+#         subtotalAmount {
+#           amount
+#         }
+#       }
+#     }
+#   }
+#   discount {
+#     discountClasses
+#   }
+# }
+query CartInput($collectionIds: [ID!]) {
+  cart {
+    lines {
+      id
+      merchandise {
+        __typename
+        ... on ProductVariant {
+          id
+          product {
+            id
+            inAnyCollection(ids: $collectionIds)
+          }
+        }
+      }
+      cost {
+        subtotalAmount {
+          amount
+        }
+      }
+    }
+  }
+  discount {
+    discountClasses
+    metafield(
+      namespace: "$app:example-discounts--ui-extension"
+      key: "function-configuration"
+    ) {
+      value
+    }
+  }
+}
+
+

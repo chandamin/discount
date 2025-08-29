@@ -1,0 +1,177 @@
+// app/routes/webhooks/discounts-update.tsx
+import type { ActionFunctionArgs} from "@remix-run/node";
+import { authenticate } from "~/shopify.server";
+import { sendEmail } from "~/utils/sendEmail.server";
+import { sendSMS } from "~/utils/sendSMS.server";
+import admin from "~/utils/fcm.server";
+
+type StoredProduct = { id: string; title: string; url: string };
+type StoredCollection = { id: string; title: string; url: string };
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  console.log("Webhook received: discounts/update");
+
+  try {
+    // Authenticate webhook request & get shop + session
+    const { payload} = await authenticate.webhook(request);
+
+    if (!payload || !payload.admin_graphql_api_id) {
+      console.error("Invalid payload", payload);
+      return new Response("Invalid webhook payload", { status: 400 });
+    }
+
+    // Extract discount info
+    const rawId = payload.admin_graphql_api_id;
+    const id = rawId.split("/").pop(); // e.g. gid://shopify/DiscountNode/123456 → "123456"
+    const discountTitle = payload.title || "Untitled Discount";
+    const status = payload.status || "ACTIVE";
+    const updatedAt = payload.updated_at || payload.updatedAt || new Date().toISOString();
+    // const updatedString = new Date(updatedAt);
+
+    console.log(` Discount updated: ${discountTitle} [${status}]`);
+
+    // Sync with discountPayload table
+    await prisma.discountPayload.upsert({
+      where: { id },
+      update: {
+        title: discountTitle,
+        status,
+        updatedAt: new Date(updatedAt),
+      },
+      create: {
+        id,
+        title: discountTitle,
+        status,
+        updatedAt: new Date(updatedAt),
+      },
+    });
+
+    console.log(`Synced discountPayload record for ID ${id}`);
+    
+    const discountRecord = await prisma.discount.findUnique({
+        where: { id },
+        select: {
+          products: true,
+          collections: true,
+          productPercentage: true,
+          orderPercentage: true,
+          deliveryPercentage: true,
+        },
+    });
+
+
+    let targetName: string = discountTitle;
+    let targetUrl: string | null = null;
+
+    if (discountRecord?.products && (discountRecord.products as any).length > 0) {
+      const [product] = discountRecord.products as StoredProduct[];
+      targetName = product.title;
+      targetUrl = product.url;
+    } else if (discountRecord?.collections && (discountRecord.collections as StoredCollection[]).length > 0) {
+      const [collection] = discountRecord.collections as StoredCollection[];
+      targetName = collection.title;
+      targetUrl = collection.url;
+    }
+
+
+    // Fetch subscribers from Prisma table
+    const subscribers = await prisma.subscriber.findMany({
+      select: { email: true, phone: true },
+    });
+
+    const emailList: string[] = subscribers
+      .map((s) => s.email)
+      .filter((email): email is string => email !== null);
+
+    const phoneList: string[] = subscribers
+      .map((s) => s.phone)
+      .filter((phone): phone is string => phone !== null);
+    const tokenRecords = await prisma.fcmToken.findMany({ select: { token: true } });
+
+    const tokenList = [...new Set(tokenRecords.map(t=>t.token))];
+
+    if (status === "ACTIVE") {
+        const percentage =
+          discountRecord?.productPercentage ||
+          discountRecord?.orderPercentage ||
+          discountRecord?.deliveryPercentage ||
+          "";
+        const bodyMessage = `Get ${percentage}% Off on ${targetName}`;
+        const subjectLine = `Discount Live: ${discountTitle}`;
+
+        /**
+       * 1. EMAIL
+       */
+
+      //Async Email 
+
+      const emailPromise = (async () => {
+        if (emailList.length > 0) {
+          await sendEmail({
+            to: emailList,
+            subject: subjectLine,
+            text: `${bodyMessage}\n\nHurry before it ends!`,
+            html: `
+              <h2>🎉 Discount Live!</h2>
+              <p>${bodyMessage}</p>
+              ${targetUrl ? `<p><a href="${targetUrl}" target="_blank">Shop Now</a></p>` : ""}
+            `,
+          });
+          console.log(`Email sent to ${emailList.length} customers`);
+        }
+      })();
+
+      /**
+       * 2. SMS
+       */
+
+      // Async SMS
+      const smsPromise = (async () => {
+        if (phoneList.length > 0) {
+          await Promise.all(
+            phoneList.map((phone) =>
+              sendSMS(phone, `${bodyMessage}. ${targetUrl ? `Shop here: ${targetUrl}` : ""}`)
+            )
+          );
+          console.log(`SMS sent to ${phoneList.length} customers`);
+        }
+      })();
+
+      
+      /**
+       * 3. WEB NOTIFICATIONS
+       */
+
+      const pushPromise = (async () => {
+        if (tokenList.length > 0) {
+               const Messaging= `Get ${discountRecord?.productPercentage || discountRecord?.orderPercentage || discountRecord?.deliveryPercentage || ""}% Off on ${targetName}`;
+               const message = {
+                  data: {
+                    title: `Discount Live! : ${discountTitle} `,
+                    body: Messaging,
+                    url: targetUrl || "",
+                  },
+                  tokens: tokenList,
+                };
+          const pushResponse = await admin.messaging().sendEachForMulticast(message);
+          console.log(`Push notifications sent: ${pushResponse.successCount}/${tokenList.length}`);
+        }
+      })();
+
+      // Promise.allSettled([emailPromise,smsPromise, pushPromise]).catch((err) =>
+      Promise.allSettled([emailPromise,smsPromise,pushPromise]).catch((err) =>
+        console.error("Notification sending error:", err)
+      );
+    }
+    // return reesponse;
+    return new Response("Webhook processed", { status: 200 });
+  } catch (error) {
+    console.error("Webhook processing error:", error);
+    return new Response(
+      JSON.stringify({ error: "Error processing discounts/update webhook" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+};
+
+

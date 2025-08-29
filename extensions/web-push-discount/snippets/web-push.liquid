@@ -1,0 +1,22 @@
+<div id="fcm-subscribe-container" style="display:none;"></div>
+
+
+<script type="module">
+  import { ensureWebPushSyncedOnLoad, watchPermissionChanges } from "{{ 'subscribe.js' | asset_url }}";
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    // Reconcile DB with browser state (handles blocked/denied cleanup)
+    const res = await ensureWebPushSyncedOnLoad();
+    console.log("WebPush onLoad:", res);
+
+    // Optional: if you still want to auto-prompt when permission is "default"
+    if (Notification.permission === "default") {
+      const { requestNotificationPermission } = await import("{{ 'subscribe.js' | asset_url }}");
+      const r = await requestNotificationPermission();
+      console.log("WebPush request:", r);
+    }
+
+    // Optional: react immediately if shopper toggles permission while the page is open
+    watchPermissionChanges();
+  });
+</script>

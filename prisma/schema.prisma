@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+
+  @@map("Session")
+}
+
+model Shop {
+  id          String   @id @default(cuid())
+  domain      String   @unique // e.g. coolstore.myshopify.com
+  accessToken String // Shopify access token
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relation
+  
+}
+
+model Discount {
+  id          String   @id
+  shop        String   // shop domain
+  functionId  String?
+  title       String
+  code        String?
+  method      String
+  startsAt    DateTime
+  endsAt      DateTime?
+
+  // Percentages
+  productPercentage  Float
+  orderPercentage    Float
+  deliveryPercentage Float
+
+  // Applied entities
+  products    Json    // [{ id, title, url }]
+  collections Json    // [{ id, title, url }]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relation to DiscountPayload
+  payload     DiscountPayload? @relation("DiscountToPayload") 
+}
+
+model DiscountPayload {
+  id        String    @id 
+  title     String
+  status    String
+  updatedAt DateTime?
+
+  // Back relation (optional)
+  discount  Discount? @relation("DiscountToPayload", fields: [id], references: [id])
+}
+
+model FcmToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  phone     String?  @unique
+  createdAt DateTime @default(now())
+}
+
+model WebhookLog {
+  id        String   @id    // Shopify Webhook ID
+  createdAt DateTime @default(now())
+}
+
+model Template {
+  id        String   @id @default(cuid())
+  shop      String
+  name      String
+  subject   String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+

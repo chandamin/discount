@@ -1,0 +1,45 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "f24bcf183f457132c6eb190e1ae35272"
+name = "Discount Architect"
+handle = "discountapp-63"
+application_url = "https://prime-gazette-classified-exhibit.trycloudflare.com"
+embedded = true
+
+[build]
+# dev_store_url = "customizeproduc.myshopify.com"
+include_config_on_deploy = true
+automatically_update_urls_on_dev = true
+
+[webhooks]
+api_version = "2025-07"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+  
+  [[webhooks.subscriptions]]
+  topics = [ "discounts/update" ]
+  uri = "/webhooks/discounts-update"
+
+
+  [[webhooks.subscriptions]]
+  topics = ["discounts/delete"]
+  uri = "/webhooks/discounts-delete"
+
+
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_products,write_discounts,read_customers,write_customers"
+
+[auth]
+redirect_urls = ["https://prime-gazette-classified-exhibit.trycloudflare.com/auth/callback", "https://prime-gazette-classified-exhibit.trycloudflare.com/auth/shopify/callback", "https://prime-gazette-classified-exhibit.trycloudflare.com/api/auth/callback"]
+
+[pos]
+embedded = false

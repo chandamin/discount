@@ -1,0 +1,201 @@
+{% comment %} pop-up.liquid  {% endcomment %}
+
+<div class="popup-overlay" id="popup">
+  <div class="popup-container">
+    <button class="popup-close" id="popup-close">&times;</button>
+    <h2 id="popup-heading"></h2>
+    <p id="popup-message"></p>
+  </div>
+</div>
+
+
+<style>
+  .popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+  .popup-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
+    animation: fadeIn 0.3s ease-in-out;
+    text-align: center;
+  }
+  .popup-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+</style>
+
+{% comment %} <script>
+
+  const STORAGE_KEY = "discountPopupLastSeen";
+  const CAPTURE_DONE_KEY = "CollectForm";
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const popup = document.getElementById("popup");
+    const heading = document.getElementById("popup-heading");
+    const message = document.getElementById("popup-message");
+    const closeBtn = document.getElementById("popup-close");
+
+    const shopDomain = "{{ shop.domain }}"; // Liquid injects shop domain
+
+    const lastSeen = localStorage.getItem(STORAGE_KEY);
+    const now = Date.now();
+    const duration = 3*60*60*1000;
+
+    if(lastSeen && now - parseInt(lastSeen,10) < duration){
+      // console.log("Seen Recently");
+      return;
+    }
+
+    fetch("/apps/popup/popup?shop=" + shopDomain)
+      .then(async (res) => {
+        // Try to parse JSON, even on error
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw new Error(text || res.statusText);
+        }
+        if (!res.ok) {
+          throw new Error(data.message || res.statusText);
+        }
+        return data;
+      })
+      .then((data) => {
+        console.log(data, "dattaaa");
+        if(!data) return;
+        heading.innerHTML = data.heading || "Welcome!";
+        message.innerHTML = data.message || "";
+        // heading.innerText = data.heading || "Welcome!";
+        // message.innerText = data.message || "";
+        popup.style.display = "flex";
+
+        // Save "last seen" timestamp
+        localStorage.setItem(STORAGE_KEY, Date.now().toString());
+      })
+      .catch((err) => {
+        console.warn("Popup fetch failed:", err);
+        // heading.innerHTML = "Could not load popup";
+        // popup.style.display = "flex";
+      });
+    closeBtn.addEventListener("click", () => {
+      popup.style.display = "none";
+    });
+
+    popup.addEventListener("click", (e) => {
+      if (e.target === popup) {
+        popup.style.display = "none";
+      }
+    });
+  });
+</script>   {% endcomment %}
+
+
+<script>
+  const STORAGE_KEY = "discountPopupLastSeen";
+  const CAPTURE_DONE_KEY = "CollectForm"; // captureData sets this
+  const SHOW_DELAY = 3000; // 3 seconds delay
+  const CHECK_INTERVAL = 500; // interval to check capture popup status
+  const COOLDOWN = 3 * 60 * 60 * 1000; // 3 hours
+
+
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const popup = document.getElementById("popup");
+    const heading = document.getElementById("popup-heading");
+    const message = document.getElementById("popup-message");
+    const closeBtn = document.getElementById("popup-close");
+    const shopDomain = "{{ shop.domain }}"; // Liquid injects shop domain
+
+    const lastSeen = localStorage.getItem(STORAGE_KEY);
+    const now = Date.now();
+
+    // Skip if shown recently
+    if (lastSeen && now - parseInt(lastSeen, 10) < COOLDOWN) {
+      return;
+    }
+
+    // Function to show discount popup
+    function showDiscountPopup() {
+      fetch("/apps/popup/popup?shop=" + shopDomain)
+        .then(async (res) => {
+          const text = await res.text();
+          let data;
+          try {
+            data = JSON.parse(text);
+          } catch (e) {
+            throw new Error(text || res.statusText);
+          }
+          if (!res.ok) {
+            throw new Error(data.message || res.statusText);
+          }
+          return data;
+        })
+        .then((data) => {
+          if (!data) return;
+          heading.innerHTML = data.heading || "Welcome!";
+          message.innerHTML = data.message || "";
+          popup.style.display = "flex";
+
+          // Save "last seen" timestamp
+          localStorage.setItem(STORAGE_KEY, Date.now().toString());
+        })
+        .catch((err) => {
+          console.warn("Popup fetch failed:", err);
+        });
+    }
+
+    // If capture popup already done, show discount popup after delay
+    if (localStorage.getItem(CAPTURE_DONE_KEY) === "true") {
+      setTimeout(showDiscountPopup, SHOW_DELAY);
+    } else {
+      // Wait for capture popup to finish before showing discount popup
+      const waitForCapture = setInterval(() => {
+        if (localStorage.getItem(CAPTURE_DONE_KEY) === "true") {
+          clearInterval(waitForCapture);
+          setTimeout(showDiscountPopup, 1000); // small gap after capture closes
+        }
+      }, CHECK_INTERVAL);
+    }
+
+    // Close events
+    closeBtn.addEventListener("click", () => {
+      popup.style.display = "none";
+    });
+    popup.addEventListener("click", (e) => {
+      if (e.target === popup) {
+        popup.style.display = "none";
+      }
+    });
+  });
+</script>

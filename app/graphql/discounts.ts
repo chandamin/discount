@@ -1,0 +1,254 @@
+// Queries
+export const GET_DISCOUNT = `
+  query GetDiscount($id: ID!) {
+    discountNode(id: $id) {
+      id
+      configurationField: metafield(
+        namespace: "$app:example-discounts--ui-extension"
+        key: "function-configuration"
+      ) {
+        id
+        value
+      }
+      discount {
+        __typename
+        ... on DiscountAutomaticApp {
+          title
+          status
+          discountClasses
+          combinesWith {
+            orderDiscounts
+            productDiscounts
+            shippingDiscounts
+          }
+          startsAt
+          endsAt
+        }
+        ... on DiscountCodeApp {
+          title
+          status
+          discountClasses
+          combinesWith {
+            orderDiscounts
+            productDiscounts
+            shippingDiscounts
+          }
+          startsAt
+          endsAt
+          usageLimit
+          appliesOncePerCustomer
+          codes(first: 1) {
+            nodes {
+              code
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+export const GET_ALL_DISCOUNT = `
+  query GetAllDiscounts($first: Int!, $after: String) {
+    discountNodes(first: $first, after: $after, sortKey: CREATED_AT, reverse: true) {
+      nodes {
+        id
+        discount {
+          __typename
+          ... on DiscountCodeApp {
+            title
+            status
+            combinesWith {
+              orderDiscounts
+              productDiscounts
+              shippingDiscounts
+            }
+            asyncUsageCount
+
+          }
+          ... on DiscountCodeBasic {
+            title
+            status
+          }
+          ... on DiscountCodeBxgy {
+            title
+            status
+          }
+          ... on DiscountCodeFreeShipping {
+            title
+            status
+          }
+          ... on DiscountAutomaticApp {
+            title
+            status
+            combinesWith {
+              orderDiscounts
+              productDiscounts
+              shippingDiscounts
+            }
+            asyncUsageCount
+          }
+          ... on DiscountAutomaticBasic {
+            title
+            status
+          }
+          ... on DiscountAutomaticBxgy {
+            title
+            status
+          }
+          ... on DiscountAutomaticFreeShipping {
+            title
+            status
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        endCursor
+        startCursor
+      }
+    }
+  }
+`;
+// Mutations
+export const UPDATE_CODE_DISCOUNT = `
+  mutation UpdateCodeDiscount($id: ID!, $discount: DiscountCodeAppInput!) {
+    discountUpdate: discountCodeAppUpdate(id: $id, codeAppDiscount: $discount) {
+      codeAppDiscount{
+        discountId
+        title
+        usageLimit
+      }  
+      userErrors {
+        code
+        message
+        field
+      } 
+    }
+  }
+`;
+
+export const UPDATE_AUTOMATIC_DISCOUNT = `
+  mutation UpdateAutomaticDiscount(
+    $id: ID!
+    $discount: DiscountAutomaticAppInput!
+  ) {
+    discountUpdate: discountAutomaticAppUpdate(
+      id: $id
+      automaticAppDiscount: $discount
+    ) {
+      automaticAppDiscount{
+        title
+        status
+        startsAt
+        endsAt
+      }
+      userErrors {
+        code
+        message
+        field
+      }
+    }
+  }
+`;
+
+export const CREATE_CODE_DISCOUNT = `
+  mutation CreateCodeDiscount($codeAppDiscount: DiscountCodeAppInput!) {
+    discountCreate: discountCodeAppCreate(codeAppDiscount: $codeAppDiscount) {
+      codeAppDiscount {
+        discountId
+      }
+      userErrors {
+        code
+        message
+        field
+      }
+    }
+  }
+`;
+
+export const CREATE_AUTOMATIC_DISCOUNT = `
+  mutation CreateAutomaticDiscount($discount: DiscountAutomaticAppInput!) {
+    discountCreate: discountAutomaticAppCreate(automaticAppDiscount: $discount) {
+      automaticAppDiscount {
+        discountId
+      }
+      userErrors {
+        code
+        message
+        field
+      }
+    }
+  }
+`;
+
+//Update Status Mutations
+
+export const DISCOUNT_CODE_ACTIVATE = `
+  mutation discountCodeActivate($id: ID!) {
+    discountCodeActivate(id: $id) {
+      codeDiscountNode {
+        codeDiscount { 
+          ... on DiscountCodeApp{
+            status 
+          }
+        }
+      }
+      userErrors { field code message }
+    }
+  }
+`;
+
+export const DISCOUNT_CODE_DEACTIVATE = `
+  mutation discountCodeDeactivate($id: ID!) {
+    discountCodeDeactivate(id: $id) {
+      codeDiscountNode {
+        codeDiscount { 
+          ... on DiscountCodeApp{  
+            status 
+          }
+        }
+      }
+      userErrors { field code message }
+    }
+  }
+`;
+
+// export const DISCOUNT_AUTOMATIC_ACTIVATE = `
+//   mutation discountAutomaticActivate($id: ID!) {
+//     discountAutomaticActivate(id: $id) {
+//       automaticDiscountNode {
+//         automaticDiscount { status }
+//       }
+//       userErrors { field message }
+//     }
+//   }
+// `;
+export const DISCOUNT_AUTOMATIC_ACTIVATE = `
+  mutation discountAutomaticActivate($id: ID!) {
+    discountAutomaticActivate(id: $id) {
+      automaticDiscountNode {
+        automaticDiscount {
+          ... on DiscountAutomaticApp {
+            status
+          }
+        }
+      }
+      userErrors { field message }
+    }
+  }
+`;
+export const DISCOUNT_AUTOMATIC_DEACTIVATE = `
+  mutation discountAutomaticDeactivate($id: ID!) {
+    discountAutomaticDeactivate(id: $id) {
+      automaticDiscountNode {
+        automaticDiscount { 
+          ... on DiscountAutomaticApp{
+            status 
+          }
+        }
+      }
+      userErrors { field message }
+    }
+  }
+`;

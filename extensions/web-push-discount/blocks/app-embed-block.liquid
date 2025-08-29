@@ -1,0 +1,27 @@
+
+{%if template=="index" %}
+  {% render 'captureData' %}
+{% endif %}
+{%if customer%}
+  {% render 'pop-up' %}
+{%endif%}
+
+{% render 'web-push' %}
+
+
+
+   
+
+
+{% comment %}
+  extensions/my-theme-extension/blocks/fcm-initializer.liquid
+  This file contains the schema and the script for FCM initialization.
+{% endcomment %}
+
+{% schema %}
+   {
+     "name": "My App Embed",
+     "target": "body",
+     "settings": []
+   }
+{% endschema %}
