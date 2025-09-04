@@ -31,8 +31,8 @@ export async function getCollectionsByIds(
   request: Request,
   collectionIds: string[],
 ): Promise<Collection[]> {
-  const { admin } = await authenticate.admin(request);
-
+  const { admin,session } = await authenticate.admin(request);
+  const shop = session.shop;
   const response = await admin.graphql(GET_COLLECTIONS, {
     variables: {
       ids: collectionIds.map((id: string) =>
@@ -48,6 +48,6 @@ export async function getCollectionsByIds(
     .map((p: any) => ({
       id: p.id,
       title: p.title,
-      url: `https://${process.env.SHOPIFY_SHOP}/collections/${p.handle}`,
+      url: `https://${shop}/collections/${p.handle}`,
     }));
 }

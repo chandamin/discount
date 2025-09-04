@@ -165,6 +165,13 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 export async function action({ params, request }: ActionFunctionArgs) {
   const subPath = params.subPath;
 
+  const shop =
+      request.headers.get("x-shop-domain") ||
+      new URL(request.url).searchParams.get("shop");
+
+  if (!shop) {
+    return json({ error: "Shop not found" }, { status: 400 });
+  }
   if (subPath === "fcm-sw") {
   try {
     const method = request.method;
@@ -181,9 +188,9 @@ export async function action({ params, request }: ActionFunctionArgs) {
     if (method === "POST") {
       // Save or update token
       await prisma.fcmToken.upsert({
-        where: { token },
+        where: { token, shop },
         update: { updatedAt: new Date() },
-        create: { token },
+        create: { token, shop },
       });
 
       console.log(`Saved FCM token: ${token}`);
@@ -196,7 +203,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
 
     if (method === "DELETE") {
       await prisma.fcmToken.deleteMany({
-        where: { token },
+        where: { token, shop },
       });
 
       console.log(`Deleted FCM token: ${token}`);
@@ -227,6 +234,8 @@ export async function action({ params, request }: ActionFunctionArgs) {
         const formData = await request.formData();
           const email = formData.get("email")?.toString();
           const phone = formData.get("phone")?.toString();
+          const shop = formData.get("shop")?.toString();
+
         // const body = await request.json();
 
         // const email = body.email?.toString().trim();
@@ -242,10 +251,21 @@ export async function action({ params, request }: ActionFunctionArgs) {
           );
         }
 
+        if (!shop) {
+          return new Response(
+            JSON.stringify({ error: "Missing shop identifier" }),
+            {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+
         await prisma.subscriber.create({
           data: {
             email: email || null,
             phone: phone || null,
+            shop,  
           },
         });
 

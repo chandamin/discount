@@ -113,7 +113,7 @@ export default function DiscountsList() {
   const [active, setActive] = useState(false);
   const [selectedDiscount, setSelectedDiscount] = useState<{ id: string; type: string } | null>(null);
 
-      // Open modal
+  // Open modal
   const openModal = (id: string, type: string) => {
     setSelectedDiscount({ id, type });
     setActive(true);
@@ -136,16 +136,10 @@ export default function DiscountsList() {
     { label: "Used", value: "used asc", directionLabel: "Low → High" },
     { label: "Used", value: "used desc", directionLabel: "High → Low" },
   ];
-  const [sortSelected, setSortSelected] = useState<string[]>(["title asc"]);
+  const [sortSelected, setSortSelected] = useState<string[]>(["used asc"]);
   const tabs: TabProps[] = [{ id: "all", content: "All", isLocked: true }];
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const { mode, setMode } = useSetIndexFiltersMode();
-  const primaryAction: IndexFiltersProps["primaryAction"] = {
-    type: "save-as",
-    onAction: async () => true,
-    disabled: false,
-    loading: false,
-  };
 
   // Filter + Sort
   const filtered = useMemo(() => {
@@ -190,40 +184,6 @@ export default function DiscountsList() {
     );
   };
 
-  // Open delete modal for a specific discount
-  // const openDeleteModal = (d: Discount) => {
-  //   setSelectedDiscount(d);
-  //   setActive(true);
-  // };
-
-  // Confirm delete - set mutating id to selected discount and submit
-  // const handleDeleteConfirm = () => {
-  //   if (!selectedDiscount) return;
-  //   setMutatingDiscountId(selectedDiscount.id);
-  //   actionFetcher.submit(
-  //     { id: selectedDiscount.id, type: selectedDiscount.type, action: "delete" },
-  //     { method: "post" }
-  //   );
-  // };
-
-  // After any mutation completes, refresh the list and reset per-item loading/modal
-  // useEffect(() => {
-  //   // When fetcher becomes idle, the mutation finished (success or failure)
-  //   if (actionFetcher.state === "idle") {
-  //     // success -> refresh
-  //     if (actionFetcher.data?.success) {
-  //       refreshList();
-  //       if (active) setActive(false);
-  //       setSelectedDiscount(null);
-  //     } else if (actionFetcher.data && !actionFetcher.data.success) {
-  //       // optional: show an error toast. For now, log it.
-  //       console.error("Mutation error:", actionFetcher.data.error);
-  //     }
-  //     // always clear the per-item mutating id once request completes
-  //     setMutatingDiscountId(null);
-  //   }
-  // }, [actionFetcher.state, actionFetcher.data, refreshList, active]);
-
   // Watch for successful delete to close modal
   useEffect(() => {
     if (actionFetcher.state === "idle" && actionFetcher.data?.success){
@@ -247,7 +207,6 @@ export default function DiscountsList() {
           queryPlaceholder="Search by title, status, or method"
           onQueryChange={handleFiltersQueryChange}
           onQueryClear={handleQueryClear}
-          primaryAction={primaryAction}
           cancelAction={{ onAction: () => {}, disabled: false, loading: false }}
           tabs={tabs}
           selected={selectedTab}
@@ -305,14 +264,6 @@ export default function DiscountsList() {
 
               {/* Delete - open modal, show loading only for the deleted row */}
               <IndexTable.Cell>
-                {/* <Button
-                  tone="critical"
-                  icon={DeleteIcon}
-                  loading={isMutating(discount.id)}
-                  onClick={() => openDeleteModal(discount)}
-                >
-                  Delete
-                </Button> */}
                 <Button 
                   tone="critical"
                   icon={DeleteIcon} 

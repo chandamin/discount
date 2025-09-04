@@ -13,8 +13,9 @@ import {
   InlineStack,
   RadioButton,
 } from "@shopify/polaris";
-import { returnToDiscounts } from "app/utils/navigation";
+// import { returnToDiscounts } from "app/utils/navigation";
 import { useCallback, useMemo, useState } from "react";
+import { useNavigate } from "@remix-run/react";
 
 import { combineDateTime, useDiscountForm } from "../../hooks/useDiscountForm";
 import { DiscountClass } from "../../types/admin.types.d";
@@ -28,7 +29,7 @@ interface SubmitError {
   field: string[];
 }
 
-interface DiscountFormProps {
+export interface DiscountFormProps {
   initialData?: {
     title: string;
     method: DiscountMethod;
@@ -54,16 +55,23 @@ interface DiscountFormProps {
   };
   collections: { id: string; title: string }[];
   products: {id: string; title: string}[];
+  // discounts: { id: string; title: string; code?: string }[];
   isEditing?: boolean;
   submitErrors?: SubmitError[];
   isLoading?: boolean;
   success?: boolean;
 }
 
+type ExtendedProps = DiscountFormProps & {
+  discounts?: { id: string; title: string; code?: string | null }[];
+};
+
 const methodOptions = [
   { label: "Discount code", value: DiscountMethod.Code },
   { label: "Automatic discount", value: DiscountMethod.Automatic },
 ];
+
+
 
 export function DiscountForm({
   initialData,
@@ -73,7 +81,8 @@ export function DiscountForm({
   submitErrors = [],
   isLoading = false,
   success = false,
-}: DiscountFormProps) {
+  discounts = [], 
+}: ExtendedProps) {
   const { formState, setField, setConfigField, setCombinesWith, submit } =
     useDiscountForm({
       initialData,
@@ -83,6 +92,8 @@ export function DiscountForm({
   const [products, setProducts] = useState<DiscountFormProps["products"]>(initialProducts);
   const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
   const [showErrors, setShowErrors] = useState(false);
+
+  const navigate = useNavigate();
   
 
   const today = useMemo(() => {
@@ -224,6 +235,21 @@ const validateForm = () => {
       errors.code = "Discount code is required";
     }
 
+    // Validation for duplicate code / title
+    if (formState.method === DiscountMethod.Code && discounts.length > 0) {
+      const duplicate = discounts.find(d => d.code?.toLowerCase() === formState.code.toLowerCase());
+      if (duplicate) {
+        errors.code = "This discount code already exists.";
+      }
+    }
+
+    if (formState.method === DiscountMethod.Automatic && discounts.length > 0) {
+      const duplicate = discounts.find(d => d.title.toLowerCase() === formState.title.toLowerCase());
+      if (duplicate) {
+        errors.title = "This discount title already exists.";
+      }
+    }
+
     // Discount class validation
     const hasProduct = formState.discountClasses.includes(DiscountClass.Product);
     const hasOrder = formState.discountClasses.includes(DiscountClass.Order);
@@ -273,6 +299,11 @@ const validateForm = () => {
       submit();
     }
   };
+
+  const returnToDiscounts = () => {
+    navigate("/app/discounts"); // your internal app route
+  };
+
 
 
   // Error Banner

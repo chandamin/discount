@@ -14,6 +14,7 @@ import {
   updateCodeDiscount,
 } from "../models/discounts.server";
 import { DiscountMethod } from "../types/types";
+import {authenticate} from "~/shopify.server";
 
 interface ActionData {
   errors?: {
@@ -53,6 +54,11 @@ interface LoaderData {
 }
 
 export const action = async ({ params, request }: ActionFunctionArgs) => {
+
+  const { session } = await authenticate.admin(request); // ✅ get authenticated shop
+  const shop = session.shop;
+
+
   const { id, functionId } = params;
   if (!id) throw new Error("No discount ID provided");
 
@@ -127,7 +133,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
 
   // Update record in Prisma
   await prisma.discount.update({
-    where: { id: discountNodeId },
+    where: { id: discountNodeId, shop },
     data: {
       functionId: functionId ?? "",
       title,

@@ -30,16 +30,7 @@ model Session {
   @@map("Session")
 }
 
-model Shop {
-  id          String   @id @default(cuid())
-  domain      String   @unique // e.g. coolstore.myshopify.com
-  accessToken String // Shopify access token
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 
-  // Relation
-  
-}
 
 model Discount {
   id          String   @id
@@ -64,7 +55,10 @@ model Discount {
   updatedAt   DateTime @updatedAt
 
   // Relation to DiscountPayload
-  payload     DiscountPayload? @relation("DiscountToPayload") 
+  payload DiscountPayload? @relation("DiscountToPayload")
+
+  // @@unique([shop, title])   // unique per shop+title
+  // @@unique([shop, code])    // unique per shop+code
 }
 
 model DiscountPayload {
@@ -74,12 +68,13 @@ model DiscountPayload {
   updatedAt DateTime?
 
   // Back relation (optional)
-  discount  Discount? @relation("DiscountToPayload", fields: [id], references: [id])
+  discount Discount? @relation("DiscountToPayload", fields: [id], references: [id]) 
 }
 
 model FcmToken {
   id        String   @id @default(cuid())
   token     String   @unique
+  shop      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -88,6 +83,7 @@ model Subscriber {
   id        String   @id @default(cuid())
   email     String?  @unique
   phone     String?  @unique
+  shop      String   @default("Unknown")
   createdAt DateTime @default(now())
 }
 

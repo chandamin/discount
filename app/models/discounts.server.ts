@@ -74,7 +74,7 @@ export async function createCodeDiscount(
   appliesOncePerCustomer: boolean,
   configuration: DiscountConfiguration,
 ) {
-  const { admin } = await authenticate.admin(request);
+  const { admin} = await authenticate.admin(request);
   const response = await admin.graphql(CREATE_CODE_DISCOUNT, {
     variables: {
       codeAppDiscount: {
@@ -222,9 +222,9 @@ export async function updateCodeDiscount(
   if(errors?.length){
     return {errors};
   }
-
+  const shop = session.shop;
   await prisma.discount.update({
-    where: { id },
+    where: { id, shop },
     data: {
       shop: session.shop, // save shop reference
       functionId: baseDiscount.functionId!,
@@ -297,9 +297,9 @@ export async function updateAutomaticDiscount(
   if(errors?.length){
     return {errors}
   }
-
+  const shop = session.shop;
   await prisma.discount.update({
-    where: { id },
+    where: { id, shop },
     data: {
       shop: session.shop,
       functionId: baseDiscount.functionId!,
@@ -321,7 +321,7 @@ export async function updateAutomaticDiscount(
 
 // Delete Discount
 export async function deleteDiscount(request: Request, id: string, type: "code" | "automatic") {
-  const { admin } = await authenticate.admin(request);
+  const { admin,session } = await authenticate.admin(request);
 
   try {
     // Shopify API: Delete Discount
@@ -354,8 +354,9 @@ export async function deleteDiscount(request: Request, id: string, type: "code" 
     const numericId = id.split("/").pop();
     console.log("NumericId", numericId);
     // Delete from DB
-    await prisma.discountPayload.deleteMany({ where: { id: numericId } });
-    await prisma.discount.deleteMany({ where: { id: numericId }});
+    const shop = session.shop;
+    await prisma.discountPayload.deleteMany({ where: { id: numericId} });
+    await prisma.discount.deleteMany({ where: { id: numericId, shop }});
 
     return { success: true };
   } catch (error) {

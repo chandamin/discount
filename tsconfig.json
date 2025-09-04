@@ -1,5 +1,5 @@
 {
-  "include": ["env.d.ts", "**/*.ts", "**/*.tsx", "public/firebase-messaging-sw.js"],
+  "include": ["env.d.ts", "**/*.ts", "**/*.tsx", "public/firebase-messaging-sw.js", "types"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "strict": true,

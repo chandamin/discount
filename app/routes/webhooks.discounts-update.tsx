@@ -13,8 +13,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   try {
     // Authenticate webhook request & get shop + session
-    const { payload} = await authenticate.webhook(request);
+    const { payload, shop} = await authenticate.webhook(request);
+    // Get shop domain from webhook headers
+    // const shop = request.headers.get("X-Shopify-Shop-Domain");
 
+    // if (!shop) {
+    //   console.error("Webhook missing shop domain header");
+    //   return new Response("Shop not found", { status: 400 });
+    // }
     if (!payload || !payload.admin_graphql_api_id) {
       console.error("Invalid payload", payload);
       return new Response("Invalid webhook payload", { status: 400 });
@@ -31,8 +37,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     console.log(` Discount updated: ${discountTitle} [${status}]`);
 
     // Sync with discountPayload table
+
     await prisma.discountPayload.upsert({
-      where: { id },
+      where: {id},
       update: {
         title: discountTitle,
         status,
@@ -47,9 +54,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
 
     console.log(`Synced discountPayload record for ID ${id}`);
-    
+
+
     const discountRecord = await prisma.discount.findUnique({
-        where: { id },
+        where: { id},
         select: {
           products: true,
           collections: true,
@@ -58,6 +66,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           deliveryPercentage: true,
         },
     });
+
+    
 
 
     let targetName: string = discountTitle;
@@ -75,8 +85,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 
     // Fetch subscribers from Prisma table
+    // const subscribers = await prisma.subscriber.findMany({
+    //   select: { email: true, phone: true },
+    // });
+
     const subscribers = await prisma.subscriber.findMany({
-      select: { email: true, phone: true },
+      where: { shop }, // filter by shop domain
+      select: {
+        email: true,
+        phone: true,
+      },
     });
 
     const emailList: string[] = subscribers
@@ -86,7 +104,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const phoneList: string[] = subscribers
       .map((s) => s.phone)
       .filter((phone): phone is string => phone !== null);
-    const tokenRecords = await prisma.fcmToken.findMany({ select: { token: true } });
+      
+    // const tokenRecords = await prisma.fcmToken.findMany({ select: { token: true } });
+    const tokenRecords = await prisma.fcmToken.findMany({
+      where: { shop },
+      select: { token: true },
+    });
 
     const tokenList = [...new Set(tokenRecords.map(t=>t.token))];
 
@@ -105,37 +128,37 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
       //Async Email 
 
-      const emailPromise = (async () => {
-        if (emailList.length > 0) {
-          await sendEmail({
-            to: emailList,
-            subject: subjectLine,
-            text: `${bodyMessage}\n\nHurry before it ends!`,
-            html: `
-              <h2>🎉 Discount Live!</h2>
-              <p>${bodyMessage}</p>
-              ${targetUrl ? `<p><a href="${targetUrl}" target="_blank">Shop Now</a></p>` : ""}
-            `,
-          });
-          console.log(`Email sent to ${emailList.length} customers`);
-        }
-      })();
+      // const emailPromise = (async () => {
+      //   if (emailList.length > 0) {
+      //     await sendEmail({
+      //       to: emailList,
+      //       subject: subjectLine,
+      //       text: `${bodyMessage}\n\nHurry before it ends!`,
+      //       html: `
+      //         <h2>🎉 Discount Live!</h2>
+      //         <p>${bodyMessage}</p>
+      //         ${targetUrl ? `<p><a href="${targetUrl}" target="_blank">Shop Now</a></p>` : ""}
+      //       `,
+      //     });
+      //     console.log(`Email sent to ${emailList.length} customers`);
+      //   }
+      // })();
 
       /**
        * 2. SMS
        */
 
       // Async SMS
-      const smsPromise = (async () => {
-        if (phoneList.length > 0) {
-          await Promise.all(
-            phoneList.map((phone) =>
-              sendSMS(phone, `${bodyMessage}. ${targetUrl ? `Shop here: ${targetUrl}` : ""}`)
-            )
-          );
-          console.log(`SMS sent to ${phoneList.length} customers`);
-        }
-      })();
+      // const smsPromise = (async () => {
+      //   if (phoneList.length > 0) {
+      //     await Promise.all(
+      //       phoneList.map((phone) =>
+      //         sendSMS(phone, `${bodyMessage}. ${targetUrl ? `Shop here: ${targetUrl}` : ""}`)
+      //       )
+      //     );
+      //     console.log(`SMS sent to ${phoneList.length} customers`);
+      //   }
+      // })();
 
       
       /**
@@ -159,7 +182,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       })();
 
       // Promise.allSettled([emailPromise,smsPromise, pushPromise]).catch((err) =>
-      Promise.allSettled([emailPromise,smsPromise,pushPromise]).catch((err) =>
+      Promise.allSettled([pushPromise]).catch((err) =>
         console.error("Notification sending error:", err)
       );
     }

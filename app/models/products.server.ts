@@ -34,8 +34,8 @@ export async function getProductsByIds(
 
   if (!productIds || productIds.length === 0) return [];
 
-  const { admin } = await authenticate.admin(request);
-
+  const { admin, session } = await authenticate.admin(request);
+  const shop = session.shop;
   const response = await admin.graphql(GET_PRODUCTS, {
     variables: {
       ids: productIds.map((id: string) =>
@@ -55,7 +55,7 @@ export async function getProductsByIds(
     .map((c: any) => ({
       id: c.id,
       title: c.title,
-      url: `https://${process.env.SHOPIFY_SHOP}/products/${c.handle}`,
+      url: `https://${shop}/products/${c.handle}`,
     }));
 
   //  Cast to Prisma.JsonValue so Prisma accepts it

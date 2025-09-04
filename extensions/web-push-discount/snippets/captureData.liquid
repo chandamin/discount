@@ -35,6 +35,9 @@
           title="Enter a valid phone number (7-15 digits)"
           required
         />
+
+        <input type="hidden" name="shop" value="{{ shop.permanent_domain }}" />
+        
       <button type="submit">Submit</button>
     </form>
 
@@ -220,6 +223,7 @@
     const formData = new FormData(form);
     formData.append("email", email);
     formData.append("phone", phone);
+    formData.append("shop", "{{ shop.permanent_domain }}");
 
     try {
       const res = await fetch("/apps/popup/capture", {
