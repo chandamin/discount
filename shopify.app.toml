@@ -3,37 +3,37 @@
 client_id = "f24bcf183f457132c6eb190e1ae35272"
 name = "Discount Architect"
 handle = "discountapp-63"
-application_url = "https://nested-dividend-layout-cattle.trycloudflare.com"
+application_url = "https://skinstrategy.app"
 embedded = true
 
 [webhooks]
 api_version = "2025-07"
 
-  [[webhooks.subscriptions]]
-  topics = [ "app/scopes_update" ]
-  uri = "/webhooks/app/scopes_update"
+    [[webhooks.subscriptions]]
+    topics = [ "app/scopes_update" ]
+    uri = "/webhooks/app/scopes_update"
 
-  [[webhooks.subscriptions]]
-  topics = [ "app/uninstalled" ]
-  uri = "/webhooks/app/uninstalled"
+    [[webhooks.subscriptions]]
+    topics = [ "app/uninstalled" ]
+    uri = "/webhooks/app/uninstalled"
 
-  [[webhooks.subscriptions]]
-  topics = [ "discounts/delete" ]
-  uri = "/webhooks/discounts-delete"
+    [[webhooks.subscriptions]]
+    topics = [ "discounts/delete" ]
+    uri = "/webhooks/discounts-delete"
 
-  [[webhooks.subscriptions]]
-  topics = [ "discounts/update" ]
-  uri = "/webhooks/discounts-update"
+    [[webhooks.subscriptions]]
+    topics = [ "discounts/update" ]
+    uri = "/webhooks/discounts-update"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "read_customers,read_products,write_customers,write_discounts"
 
 [auth]
-redirect_urls = ["https://nested-dividend-layout-cattle.trycloudflare.com/auth/callback", "https://nested-dividend-layout-cattle.trycloudflare.com/auth/shopify/callback", "https://nested-dividend-layout-cattle.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://skinstrategy.app/auth/callback", "https://skinstrategy.app/auth/shopify/callback", "https://skinstrategy.app/api/auth/callback"]
 
 [app_proxy]
-url = "https://nested-dividend-layout-cattle.trycloudflare.com/apps/popup"
+url = "https://skinstrategy.app/apps/popup"
 subpath = "popup"
 prefix = "apps"
 
@@ -42,3 +42,4 @@ embedded = false
 
 [build]
 automatically_update_urls_on_dev = true
+include_config_on_deploy = true

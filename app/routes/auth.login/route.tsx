@@ -1,7 +1,7 @@
-import { type LoaderFunctionArgs, redirect } from "@remix-run/node";
+import { type LoaderFunctionArgs,type ActionFunctionArgs, redirect } from "@remix-run/node";
 import { Form, useLoaderData } from "@remix-run/react";
 
-import { login } from "../../shopify.server";
+import {login } from "../../shopify.server";
 
 import styles from "./styles.module.css";
 
@@ -14,7 +14,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   return { showForm: Boolean(login) };
 };
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const formData = await request.formData();
+  const shop = formData.get("shop");
 
+  if (!shop || typeof shop !== "string") {
+    throw new Response("Missing shop parameter", { status: 400 });
+  }
+
+  // Instead of authenticate.admin(), redirect to auth.$.tsx route
+  return redirect(`/auth?shop=${encodeURIComponent(shop)}`);
+};
 export default function App() {
   const { showForm } = useLoaderData<typeof loader>();
 

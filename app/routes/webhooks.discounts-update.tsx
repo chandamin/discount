@@ -128,37 +128,37 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
       //Async Email 
 
-      // const emailPromise = (async () => {
-      //   if (emailList.length > 0) {
-      //     await sendEmail({
-      //       to: emailList,
-      //       subject: subjectLine,
-      //       text: `${bodyMessage}\n\nHurry before it ends!`,
-      //       html: `
-      //         <h2>🎉 Discount Live!</h2>
-      //         <p>${bodyMessage}</p>
-      //         ${targetUrl ? `<p><a href="${targetUrl}" target="_blank">Shop Now</a></p>` : ""}
-      //       `,
-      //     });
-      //     console.log(`Email sent to ${emailList.length} customers`);
-      //   }
-      // })();
+      const emailPromise = (async () => {
+        if (emailList.length > 0) {
+          await sendEmail({
+            to: emailList,
+            subject: subjectLine,
+            text: `${bodyMessage}\n\nHurry before it ends!`,
+            html: `
+              <h2>🎉 Discount Live!</h2>
+              <p>${bodyMessage}</p>
+              ${targetUrl ? `<p><a href="${targetUrl}" target="_blank">Shop Now</a></p>` : ""}
+            `,
+          });
+          console.log(`Email sent to ${emailList.length} customers`);
+        }
+      })();
 
       /**
        * 2. SMS
        */
 
       // Async SMS
-      // const smsPromise = (async () => {
-      //   if (phoneList.length > 0) {
-      //     await Promise.all(
-      //       phoneList.map((phone) =>
-      //         sendSMS(phone, `${bodyMessage}. ${targetUrl ? `Shop here: ${targetUrl}` : ""}`)
-      //       )
-      //     );
-      //     console.log(`SMS sent to ${phoneList.length} customers`);
-      //   }
-      // })();
+      const smsPromise = (async () => {
+        if (phoneList.length > 0) {
+          await Promise.all(
+            phoneList.map((phone) =>
+              sendSMS(phone, `${bodyMessage}. ${targetUrl ? `Shop here: ${targetUrl}` : ""}`)
+            )
+          );
+          console.log(`SMS sent to ${phoneList.length} customers`);
+        }
+      })();
 
       
       /**
@@ -181,8 +181,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         }
       })();
 
-      // Promise.allSettled([emailPromise,smsPromise, pushPromise]).catch((err) =>
-      Promise.allSettled([pushPromise]).catch((err) =>
+      Promise.allSettled([emailPromise,smsPromise, pushPromise]).catch((err) =>
+      // Promise.allSettled([pushPromise]).catch((err) =>
         console.error("Notification sending error:", err)
       );
     }

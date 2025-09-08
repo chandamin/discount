@@ -1,24 +1,38 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "dbea59d06634ef2c3a7c7ff15a2bdfa6"
+client_id = "25d55a13b6e06d1bad8ab3f89a92de10"
 name = "Discount Architect"
-handle = "discount-architect"
-application_url = "https://mathematical-local-outer-percentage.trycloudflare.com"
+handle = "discount-architect-1"
+application_url = "https://skinstrategy.app/"
 embedded = true
 
 [build]
 include_config_on_deploy = true
-automatically_update_urls_on_dev = true
 
 [webhooks]
 api_version = "2025-07"
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  topics = [ "discounts/delete" ]
+  uri = "/webhooks/discounts-delete"
+
+  [[webhooks.subscriptions]]
+  topics = [ "discounts/update" ]
+  uri = "/webhooks/discounts-update"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "read_customers,read_products,write_customers,write_discounts"
 
 [auth]
-redirect_urls = ["https://mathematical-local-outer-percentage.trycloudflare.com/auth/callback", "https://mathematical-local-outer-percentage.trycloudflare.com/auth/shopify/callback", "https://mathematical-local-outer-percentage.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://skinstrategy.app/auth/callback", "https://skinstrategy.app/auth/shopify/callback", "https://skinstrategy.app/api/auth/callback"]
 
 [pos]
 embedded = false
