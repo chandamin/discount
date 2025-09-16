@@ -21,7 +21,7 @@ export async function sendEmail({
 }) {
   // Create reusable transporter object using SMTP transport
   const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
+      host: "mail.smtp2go.com",
       port: 465,
       secure: true,
       auth: {
@@ -37,6 +37,14 @@ export async function sendEmail({
     subject,
     text,
     html,
+  });
+
+  transporter.verify(function (error, success) {
+    if (error) {
+      console.error("Transporter Error:", error);
+    } else {
+      console.log("Server is ready to take our messages");
+    }
   });
 
   console.log(`📧 Email sent: ${info.messageId}`);
