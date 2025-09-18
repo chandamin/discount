@@ -47,6 +47,7 @@ interface DiscountConfiguration {
   deliveryPercentage: number;
   collectionIds?: string[];
   productIds?: string[];
+  message: string;
 }
 
 interface UserError {
@@ -97,6 +98,7 @@ export async function createCodeDiscount(
               deliveryPercentage: configuration.deliveryPercentage,
               collectionIds: configuration.collectionIds || [],
               productIds: configuration.productIds || [],
+              message: configuration.message,
             }),
           },
         ],
@@ -144,6 +146,7 @@ export async function createAutomaticDiscount(
               deliveryPercentage: configuration.deliveryPercentage,
               collectionIds: configuration.collectionIds || [],
               productIds: configuration.productIds || [],
+              message: configuration.message,
             }),
           },
         ],
@@ -174,6 +177,7 @@ export async function updateCodeDiscount(
     deliveryPercentage: number;
     collectionIds?: string[];
     productIds?: string[];
+    message: string;
   },
 ) {
   const { admin,session } = await authenticate.admin(request);
@@ -205,6 +209,8 @@ export async function updateCodeDiscount(
                 configuration.productIds?.map((id) =>
                   id.includes("gid://") ? id : `gid://shopify/Product/${id}`,
                 ) || [],
+
+              message: configuration.message,
             }),
           },
         ],
@@ -255,6 +261,7 @@ export async function updateAutomaticDiscount(
     deliveryPercentage: number;
     collectionIds?: string[];
     productIds?: string[];
+    message: string;
   },
 ){
   const { admin, session } = await authenticate.admin(request);
@@ -279,9 +286,10 @@ export async function updateAutomaticDiscount(
                   id.includes("gid://") ? id : `gid://shopify/Collection/${id}`,
                 ) || [],
               productIds:
-              configuration.productIds?.map((id) =>
-                id.includes("gid://") ? id : `gid://shopify/Product/${id}`,
-              ) || [],
+                configuration.productIds?.map((id) =>
+                  id.includes("gid://") ? id : `gid://shopify/Product/${id}`,
+                ) || [],
+              message: configuration.message,
             }),
           },
         ],

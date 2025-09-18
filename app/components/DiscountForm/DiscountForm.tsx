@@ -44,6 +44,7 @@ export interface DiscountFormProps {
     appliesOncePerCustomer: boolean;
     startsAt: string | Date;
     endsAt: string | Date | null;
+    
     configuration: {
       cartLinePercentage: string;
       orderPercentage: string;
@@ -51,7 +52,10 @@ export interface DiscountFormProps {
       metafieldId?: string;
       collectionIds?: string[];
       productIds?: string[];
+      //Added
+      message: string;
     };
+
   };
   collections: { id: string; title: string }[];
   products: {id: string; title: string}[];
@@ -370,6 +374,9 @@ const validateForm = () => {
                 ),
                 collectionIds: formState.configuration.collectionIds || [],
                 productIds: formState.configuration.productIds || [],
+
+                //Added
+                message: formState.configuration.message,
               },
             })}
           />
@@ -687,6 +694,16 @@ const validateForm = () => {
               </Box>
             </Card>
 
+            {/*Message */}
+                    <TextField
+                      label="Cart line message"
+                      autoComplete="off"
+                      value={formState.configuration.message}
+                      onChange={(value) => setConfigField("message", value)}
+                      helpText="Appears on cart"
+                      // error={!formState.code.trim() ? "Discount code is required" : undefined}
+                      // error={showErrors ? validationErrors.code : undefined}
+                    />
             {/* Active dates section */}
             <Card>
               <Box>

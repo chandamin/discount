@@ -33,7 +33,10 @@ export function cartLinesDiscountsGenerateRun(input) {
     deliveryPercentage: 0,
     productIds: [],
     collectionIds: [],
+    message: configRaw.message,
   };
+  console.log(configRaw, "Metafield");
+
 
   try {
     if (configRaw) {
@@ -50,7 +53,7 @@ export function cartLinesDiscountsGenerateRun(input) {
       orderDiscountsAdd: {
         candidates: [
           {
-            message: `${config.orderPercentage}% OFF ORDER`,
+            message: `${config.message}`,
             targets: [
               {
                 orderSubtotal: {
@@ -85,7 +88,7 @@ export function cartLinesDiscountsGenerateRun(input) {
       operations.push({
         productDiscountsAdd: {
           candidates: applicableLines.map((line) => ({
-            message: `${config.cartLinePercentage}% OFF PRODUCT`,
+            message: `${config.message}`,
             targets: [
               {
                 cartLine: {

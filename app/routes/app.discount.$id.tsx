@@ -47,7 +47,9 @@ interface LoaderData {
       metafieldId: string;
       collectionIds: string[];
       productIds: string[];
+      message: string;
     };
+    
   } | null;
   collections: Collection[];
   products: Product[];
@@ -98,6 +100,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
     deliveryPercentage: parseFloat(configuration.deliveryPercentage),
     collectionIds: configuration.collectionIds || [],
     productIds: configuration.productIds || [],
+    message: configuration.message,
   };
 
   let result;
@@ -220,7 +223,9 @@ export default function VolumeEdit() {
       metafieldId: rawDiscount.configuration.metafieldId,
       collectionIds: rawDiscount.configuration.collectionIds || [],
       productIds: rawDiscount.configuration.productIds || [],
+      message: rawDiscount.configuration.message,
     },
+
   };
 
   return (

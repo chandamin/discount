@@ -17,6 +17,7 @@ import { getProductsByIds } from "~/models/products.server";
 import { getCollectionsByIds } from "~/models/collections.server";
 import { Prisma } from "@prisma/client";
 import { authenticate } from "~/shopify.server";
+import { config } from "process";
 
 
 interface ActionData {
@@ -125,6 +126,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
         deliveryPercentage: parseFloat(configuration.deliveryPercentage),
         collectionIds: configuration.collectionIds || [],
         productIds: configuration.productIds || [],
+        message: configuration.message,
       },
     );
   } else {
@@ -134,6 +136,7 @@ export const action = async ({ params, request }: ActionFunctionArgs) => {
       deliveryPercentage: parseFloat(configuration.deliveryPercentage),
       collectionIds: configuration.collectionIds || [],
       productIds: configuration.productIds || [],
+      message: configuration.message,
     });
   }
 
@@ -292,7 +295,11 @@ export default function VolumeNew() {
       deliveryPercentage: "0",
       collectionIds: [],
       productIds: [],
+
+      //Added
+      message: "",
     },
+    
   };
 
   return (

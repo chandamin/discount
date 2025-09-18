@@ -31,6 +31,9 @@ interface DiscountConfiguration {
   collections?: Collection[];
   productIds?: string[];
   products?: Product[];
+
+  //Added
+  message: string;
 }
 
 interface FormState {
@@ -71,7 +74,10 @@ interface UseDiscountFormProps {
       metafieldId?: string;
       collectionIds?: string[];
       productIds?: string[];
+      //Added
+      message: string;
     };
+    
   };
   onSubmit?: () => void;
 }
@@ -163,7 +169,8 @@ export function useDiscountForm({ initialData }: UseDiscountFormProps = {}) {
       metafieldId: initialData?.configuration.metafieldId,
       collectionIds: initialData?.configuration.collectionIds ?? [],
       productIds: initialData?.configuration.productIds ?? [],
-    },
+      message: initialData?.configuration.message ?? "",
+    }  
   }));
 
   // const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -253,6 +260,9 @@ export function useDiscountForm({ initialData }: UseDiscountFormProps = {}) {
           ),
           collectionIds: formState.configuration.collectionIds,
           productIds: formState.configuration.productIds,
+
+          //Added
+          message: formState.configuration.message,
         },
       }),
     );
